@@ -1,0 +1,753 @@
+CRITICAL BUSINESS MODULE ADDENDUM
+Elite Washwo — Surf Complete Stock, Return, Expense & Salesman Ledger
+The system must NOT be considered complete unless the following modules and business logic are implemented correctly.
+The main product is:
+Surf
+The business works through Salesmen/Bookers who receive stock from Elite Washwo, sell it to customers, collect money, and may return unsold/damaged stock at the end of the day.
+The system must maintain a complete and accurate financial + stock ledger for every salesman.
+
+1. SALESMAN STOCK RETURN
+A Salesman may take stock from Elite Washwo and later return some stock.
+Example:
+Salesman receives:
+100 Surf packets
+During the day:
+70 packets sold
+20 packets returned
+10 packets remaining
+The system must clearly distinguish:
+Sold
+Returned
+Remaining
+Damaged
+Missing/shortage
+Do NOT simply overwrite the original stock issue.
+Every return must create a separate inventory transaction.
+
+2. STOCK RETURN TRANSACTION
+Create a dedicated:
+Stock Return Module
+Fields:
+Return ID
+Return number
+Date
+Salesman
+Product
+Packaging
+Quantity
+Return type
+Condition
+Reason
+Notes
+Created by
+Approved by
+Status
+Created at
+Return types:
+Unsold Return
+Damaged Return
+Expired Return
+Defective Return
+Other
+Condition:
+Good
+Damaged
+Unsellable
+
+3. RETURN STOCK BUSINESS LOGIC
+If salesman returns GOOD stock:
+Example:
+Salesman has:
+10 packets
+Returns:
+4 good packets
+Then:
+Salesman stock:
+10 → 6
+Company available stock:
++4
+Inventory ledger:
+SALESMAN_RETURN_GOOD
+The returned quantity must become available company inventory again.
+
+4. DAMAGED STOCK RETURN
+If salesman returns damaged stock:
+Example:
+Salesman returns:
+3 damaged packets
+Then:
+Salesman stock:
+-3
+But company SELLABLE inventory must NOT increase by 3.
+Instead record:
+Damaged Inventory:
++3
+This must be visible separately.
+Create inventory categories:
+Sellable Stock
+Damaged Stock
+Expired Stock
+Unsellable Stock
+Never mix damaged stock with sellable stock.
+
+5. STOCK RETURN APPROVAL
+Depending on permissions, a salesman can submit a return.
+Status:
+Draft
+Submitted
+Approved
+Rejected
+When approved:
+Inventory is updated.
+If the user has direct approval permission, it can be approved immediately.
+Manager/Super Admin should be able to review pending returns.
+
+6. RETURN RECEIPT
+When a return is approved, generate:
+Stock Return Receipt
+The PDF must contain:
+Elite Washwo branding
+Logo
+Letterhead
+Return number
+Date
+Salesman
+Product
+Packaging
+Quantity
+Condition
+Reason
+Received by
+Approved by
+Signature
+Buttons:
+View PDF
+Download PDF
+Print
+WhatsApp
+
+7. SALESMAN STOCK RECONCILIATION
+At the end of each day the system must automatically calculate:
+Formula
+Opening Stock
+Stock Received
+Additional Stock
+Sold Stock
+Good Returns
+Damaged Returns
+Other Approved Adjustments
+= Closing Stock
+Example:
+Opening = 0
+Received = 100
+Sold = 70
+Good Return = 20
+Damaged = 5
+Remaining = 5
+System should show:
+100 - 70 - 20 - 5 = 5
+The salesman cannot close the day if stock is unexplained.
+If there is a discrepancy, show:
+Stock Shortage / Excess
+Example:
+Expected = 5
+Actual = 4
+Difference = -1
+The system should record the shortage and require an explanation/approval according to permissions.
+
+8. SALESMAN COMPLETE LEDGER
+Create a dedicated:
+SALESMAN LEDGER
+This is one of the most important modules in the entire application.
+Each salesman must have a complete ledger.
+Example:
+Salesman: Ali
+Stock Ledger
+Date | Transaction | In | Out | Balance
+22 Sep | Stock Issued | 100 | 0 | 100
+22 Sep | Sales | 0 | 70 | 30
+22 Sep | Good Return | 0 | 20 | 10
+22 Sep | Damaged Return | 0 | 5 | 5
+Closing Stock = 5
+
+9. SALESMAN FINANCIAL LEDGER
+The same salesman must also have a financial ledger.
+Example:
+Opening Balance:
+Rs. 5,000
+Sales:
+Rs. 20,000
+Recovery:
+Rs. 15,000
+Outstanding:
+Rs. 5,000
+The ledger should record every financial movement.
+Transaction types:
+Opening Balance
+Sale
+Recovery
+Payment
+Credit Sale
+Adjustment
+Expense
+Commission if enabled
+Refund
+Reversal
+Other
+
+10. COMPLETE SALESMAN LEDGER VIEW
+The salesman profile should have tabs:
+Overview
+Stock Ledger
+Sales Ledger
+Recovery Ledger
+Expense Ledger
+Financial Ledger
+Customer List
+Daily Closing
+Outstanding
+Documents
+Audit History
+
+11. SALESMAN DAILY STATEMENT
+Create a daily statement for each salesman.
+Example:
+Daily Salesman Statement
+Date:
+22-09-2026
+Salesman:
+Ali
+STOCK
+Opening Stock: 10
+Stock Received: 100
+Total Available: 110
+Sold: 80
+Good Returns: 20
+Damaged: 5
+Closing Stock: 5
+
+SALES
+Gross Sales:
+Rs. 20,000
+Discount:
+Rs. 500
+Net Sales:
+Rs. 19,500
+
+RECOVERY
+Cash:
+Rs. 15,000
+Bank:
+Rs. 2,000
+Total Recovery:
+Rs. 17,000
+Outstanding:
+Rs. 2,500
+
+EXPENSES
+Fuel:
+Rs. 500
+Loading:
+Rs. 200
+Other:
+Rs. 100
+Total Expense:
+Rs. 800
+
+FINAL BALANCE
+The system should clearly show the resulting salesman/company balance based on the configured accounting rules.
+Do not hardcode accounting assumptions. Make the treatment of salesman expenses configurable.
+
+12. SALESMAN EXPENSE MANAGEMENT
+Create a dedicated:
+EXPENSE MODULE
+Expenses must be connected to users/salesmen where applicable.
+Expense fields:
+Expense ID
+Date
+Expense number
+Salesman
+Category
+Amount
+Payment method
+Description
+Receipt/image
+Status
+Submitted by
+Approved by
+Created at
+Expense categories:
+Fuel
+Transport
+Loading
+Unloading
+Food
+Mobile/Communication
+Delivery
+Repair
+Market Expense
+Commission
+Other
+
+13. EXPENSE APPROVAL
+Expenses should support:
+Draft
+Submitted
+Approved
+Rejected
+Paid
+Reimbursed
+Only authorized users can approve expenses.
+A salesman should NOT automatically be able to approve his own expense.
+
+14. EXPENSE RECEIPT UPLOAD
+Allow salesman/manager to upload an expense receipt.
+Support:
+JPG
+PNG
+PDF
+Store securely in Supabase Storage.
+Show receipt in the expense record.
+Do not expose private receipts publicly.
+
+15. EXPENSE ACCOUNTING
+Each expense should specify who paid it:
+Paid by Company
+or
+Paid by Salesman
+This distinction is important.
+If:
+Salesman paid Rs. 500 personally
+and company owes him Rs. 500,
+show:
+Company Payable to Salesman = Rs. 500
+If company directly paid the expense:
+Do not add it to the salesman reimbursement balance.
+
+16. SALESMAN EXPENSE LEDGER
+Example:
+Ali — Expense Ledger
+22 Sep | Fuel | Rs. 500 | Paid by Salesman | Approved
+22 Sep | Loading | Rs. 200 | Paid by Company | Approved
+Total:
+Salesman-paid:
+Rs. 500
+Company-paid:
+Rs. 200
+Reimbursement payable:
+Rs. 500
+
+17. SALESMAN SETTLEMENT
+Create a:
+SALESMAN SETTLEMENT
+At the end of day/week/month, management should be able to settle the salesman.
+Settlement should consider:
+Sales
+Recovery
+Outstanding
+Stock
+Returns
+Damages
+Expenses
+Advances
+Adjustments
+Show a clear settlement statement.
+Do NOT automatically net unrelated transactions without an explicit business rule.
+Every adjustment must remain traceable.
+
+18. SALESMAN ADVANCE
+Support salesman advances.
+Example:
+Ali receives:
+Rs. 5,000 advance
+Create transaction:
+SALESMAN_ADVANCE
+Later:
+Rs. 1,000 adjusted
+Remaining advance:
+Rs. 4,000
+Show this separately in the salesman ledger.
+
+19. SALESMAN COMMISSION — FUTURE READY
+The system should be architected to support commission later.
+Potential fields:
+Commission type
+Percentage
+Fixed amount
+Product-specific commission
+Salesman-specific commission
+Commission period
+Commission status
+Do not activate complex commission calculations unless enabled by Super Admin.
+
+20. CUSTOMER SALES + SALESMAN LEDGER CONNECTION
+When a salesman creates a sale:
+The system should connect:
+Customer
+→ Order
+→ Invoice
+→ Salesman
+→ Product
+→ Inventory
+→ Salesman Stock
+→ Customer Ledger
+→ Salesman Ledger
+→ Recovery
+This creates a complete traceable chain.
+
+21. CUSTOMER RETURN
+Also support customer returns.
+Example:
+Customer purchased:
+10 Surf packets
+Customer returns:
+2 packets
+Create:
+Customer Return
+Fields:
+Return number
+Customer
+Salesman
+Product
+Quantity
+Reason
+Condition
+Rate
+Refund/credit amount
+Status
+If good:
+Return to sellable inventory.
+If damaged:
+Move to damaged inventory.
+Also update:
+Customer ledger
+Invoice
+Salesman ledger
+Salesman stock
+Inventory ledger
+Do NOT simply delete the original sale.
+
+22. SALES REVERSAL / RETURN
+Never delete a completed sale to fix a mistake.
+Use:
+Return
+Credit Note
+Reversal
+Cancellation
+Keep original transaction.
+Record the reason and user.
+
+23. SURF PRODUCT COMPLETE MANAGEMENT
+The Surf product must be fully manageable.
+The system must support:
+Product
+Surf
+Packaging
+Packet
+Stock
+Opening
+Production
+Purchase if later enabled
+Salesman issue
+Sales
+Customer returns
+Salesman returns
+Damaged
+Expired
+Adjustments
+Closing
+Pricing
+Cost
+Wholesale
+Retail
+Salesman rate
+Customer-specific rate
+Discount
+Reports
+Product stock
+Product sales
+Product production
+Product returns
+Product damages
+Product profitability
+Product movement
+
+24. SURF PRODUCT MOVEMENT REPORT
+Create a complete product movement report.
+Example:
+SURF — September
+Opening Stock:
+500
+Production:
+3,000
+Total Available:
+3,500
+Sales:
+2,400
+Salesman Returns:
+300
+Customer Returns:
+50
+Damaged:
+100
+Adjustments:
+-20
+Closing Stock:
+1,330
+Every number must come from actual transactions.
+
+25. INVENTORY VALUATION
+The architecture should support inventory valuation.
+At minimum store:
+Quantity
+Unit cost
+Total cost
+Later support:
+FIFO
+Average Cost
+Do not use sales price as inventory cost.
+
+26. PROFITABILITY
+The system should be able to calculate:
+Sales Revenue
+minus
+Cost of Goods Sold
+minus
+Approved Expenses
+=
+Estimated Net Profit
+Make this a reporting feature.
+Clearly distinguish:
+Revenue
+COGS
+Gross Profit
+Expenses
+Net Profit
+Do not present revenue as profit.
+
+27. EXPENSE REPORT
+Create:
+Expense Report
+Filters:
+Date
+Salesman
+Category
+Status
+Payment method
+Paid by
+Approved by
+Show:
+Total expenses
+Company-paid
+Salesman-paid
+Reimbursed
+Pending reimbursement
+Export:
+PDF
+CSV/Excel
+
+28. COMPLETE SALESMAN PROFILE
+When Super Admin/Manager opens:
+Salesman → Ali
+Show a summary dashboard:
+Stock
+Current stock:
+25 packets
+Sales
+Today's sales:
+Rs. 20,000
+Monthly sales:
+Rs. 450,000
+Recovery
+Today's recovery:
+Rs. 17,000
+Outstanding:
+Rs. 3,000
+Expenses
+Pending reimbursement:
+Rs. 1,200
+Customers
+Assigned customers:
+45
+Performance
+Sales trend
+Recovery trend
+Outstanding trend
+Ledger
+Complete transaction history
+
+29. SALESMAN LEDGER PDF
+Generate a professional:
+SALESMAN STATEMENT
+PDF.
+Include:
+Elite Washwo logo + letterhead
+Salesman:
+Ali
+Period:
+01-09-2026 to 30-09-2026
+Sections:
+Stock Summary
+Sales Summary
+Recovery Summary
+Returns
+Damages
+Expenses
+Advances
+Outstanding
+Final Balance
+Add signature fields:
+Prepared By
+Checked By
+Salesman
+Manager
+
+30. DAILY CLOSING MUST CHECK BOTH MONEY AND STOCK
+Daily closing is not complete until both are reconciled.
+STOCK RECONCILIATION
+Expected stock
+vs
+Actual stock
+AND
+MONEY RECONCILIATION
+Expected recovery
+vs
+Actual recovery
+AND
+EXPENSE RECONCILIATION
+Approved expenses
+vs
+Paid/reimbursed expenses
+If there is a difference:
+Show:
+Variance
+Amount/Quantity
+Reason
+Submitted by
+Approved by
+Status
+
+31. VARIANCE MANAGEMENT
+Create:
+Variance / Adjustment Module
+Types:
+Stock Shortage
+Stock Excess
+Cash Shortage
+Cash Excess
+Pricing Difference
+Other
+Fields:
+Date
+Salesman
+Type
+Amount/Quantity
+Reason
+Evidence
+Submitted by
+Approved by
+Status
+Never silently modify balances to hide a variance.
+
+32. AUDIT TRAIL
+Every return, expense, adjustment, recovery, payment and ledger modification must create an audit trail.
+Example:
+Ali submitted:
+20 Surf packets return
+Manager approved
+User:
+Manager 01
+Date/time:
+22-09-2026 18:32
+The system must preserve this history.
+
+33. FINAL BUSINESS FLOW
+The complete business workflow should be:
+MORNING
+Production
+↓
+Inventory increases
+↓
+Salesman receives stock
+↓
+Salesman Stock Ledger increases
+
+DURING DAY
+Salesman visits customers
+↓
+Creates Orders/Sales
+↓
+Inventory/Salesman stock updates
+↓
+Customer ledger updates
+↓
+Salesman ledger updates
+
+EVENING
+Salesman returns
+↓
+Unsold stock returned
+↓
+Damaged stock reported
+↓
+Cash recovery submitted
+↓
+Expenses submitted
+↓
+Daily closing
+↓
+Stock reconciliation
+↓
+Cash reconciliation
+↓
+Manager/Super Admin approval
+↓
+Daily statement generated
+
+34. IMPORTANT LEDGER RULE
+There must NOT be separate disconnected balances that can contradict each other.
+The system should derive balances from transaction records.
+For example:
+Salesman stock balance should be based on:
+Stock In
+minus
+Stock Out
+plus/minus approved adjustments.
+Salesman financial balance should be based on:
+Opening balance
+sales/receivables
+recoveries
++/- approved adjustments
++/- applicable expenses/advances according to configured rules.
+Every balance must be traceable to transactions.
+
+35. FINAL ACCEPTANCE CRITERIA
+The system is NOT complete until I can perform this complete scenario:
+Produce 100 Surf packets.
+Inventory increases by 100.
+Give 40 packets to Salesman Ali.
+Ali's stock becomes 40.
+Ali sells 25 packets.
+Salesman stock becomes 15.
+Ali returns 10 good packets.
+Company sellable stock increases by 10.
+Ali returns 2 damaged packets.
+Company damaged stock increases by 2.
+Ali has 3 packets remaining.
+Ali submits Rs. 20,000 recovery.
+Ali submits Rs. 500 fuel expense.
+Expense is marked "Paid by Salesman".
+Manager approves expense.
+System shows Rs. 500 reimbursement payable to Ali.
+Generate Ali's complete daily statement.
+Generate Ali's stock ledger.
+Generate Ali's financial ledger.
+Generate Elite Washwo daily closing report.
+All transactions appear in audit history.
+PDFs contain Elite Washwo logo and letterhead.
+WhatsApp buttons work using the customer's/salesman's WhatsApp number.
+Salesman cannot access another salesman's ledger.
+Manager can only perform permissions granted by Super Admin.
+Super Admin can see and manage everything.
+This scenario must be tested end-to-end with real Supabase data.
+Do not mark the project complete until this complete workflow works correctly.
